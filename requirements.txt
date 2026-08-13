@@ -1,0 +1,3 @@
+# SafeScan - Dependências do projeto
+# Por enquanto, o projeto utiliza apenas a biblioteca padrão do Python.
+# Dependências externas serão adicionadas conforme necessário.

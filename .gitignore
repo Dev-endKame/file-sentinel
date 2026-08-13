@@ -1,0 +1,40 @@
+# Ambientes virtuais
+venv/
+env/
+ENV/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribuição / build
+build/
+dist/
+*.egg-info/
+
+# IDEs
+.vscode/
+.idea/
+
+# Testes
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Relatórios gerados (o app cria, não o dev)
+reports/*.txt
+reports/*.json
+reports/*.csv
+!reports/.gitkeep
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs e dados sensíveis
+*.log
+.env
+.env.local
