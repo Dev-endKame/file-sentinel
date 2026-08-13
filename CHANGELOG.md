@@ -37,3 +37,4 @@ Módulo `src/core/hasher.py` para cálculo de hashes SHA-256
 - Interface de linha de comando (CLI) profissional com 5 subcomandos
 - `scan`, `hash`, `duplicates`, `baseline`, `verify`
 - Códigos de saída Unix para integração com scripts e automação
+- Separação entre output do usuário (print) e logs de auditoria (logger)

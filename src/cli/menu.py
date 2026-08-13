@@ -14,6 +14,7 @@ from src.core.scanner import DirectoryScanner
 from src.core.hasher import FileHasher
 from src.core.duplicate_detector import DuplicateDetector
 from src.core.integrity import IntegrityChecker
+from src.utils.report_generator import ReportGenerator
 from src.utils.logger import setup_logger
 
 
@@ -41,44 +42,32 @@ def _build_parser() -> argparse.ArgumentParser:
         "scan",
         help="Varre um diretório e lista todos os arquivos encontrados",
     )
-    scan_parser.add_argument(
-        "--path",
-        required=True,
-        help="Caminho do diretório a ser varrido",
-    )
+    scan_parser.add_argument("--path", required=True, help="Caminho do diretório a ser varrido")
+    scan_parser.add_argument("--output", help="Caminho do relatório de saída")
+    scan_parser.add_argument("--format", choices=["json", "csv"], default="json", help="Formato do relatório")
 
     # ─── hash ───
     hash_parser = subparsers.add_parser(
         "hash",
         help="Calcula o hash SHA-256 de um arquivo",
     )
-    hash_parser.add_argument(
-        "--file",
-        required=True,
-        help="Caminho do arquivo a ser hasheado",
-    )
+    hash_parser.add_argument("--file", required=True, help="Caminho do arquivo a ser hasheado")
 
     # ─── duplicates ───
     dup_parser = subparsers.add_parser(
         "duplicates",
         help="Detecta arquivos duplicados em um diretório",
     )
-    dup_parser.add_argument(
-        "--path",
-        required=True,
-        help="Caminho do diretório a ser analisado",
-    )
+    dup_parser.add_argument("--path", required=True, help="Caminho do diretório a ser analisado")
+    dup_parser.add_argument("--output", help="Caminho do relatório de saída")
+    dup_parser.add_argument("--format", choices=["json", "csv"], default="json", help="Formato do relatório")
 
     # ─── baseline ───
     base_parser = subparsers.add_parser(
         "baseline",
         help="Gera um baseline de integridade em JSON",
     )
-    base_parser.add_argument(
-        "--path",
-        required=True,
-        help="Caminho do diretório a ser monitorado",
-    )
+    base_parser.add_argument("--path", required=True, help="Caminho do diretório a ser monitorado")
     base_parser.add_argument(
         "--output",
         default="reports/safescan_baseline.json",
@@ -90,16 +79,10 @@ def _build_parser() -> argparse.ArgumentParser:
         "verify",
         help="Verifica integridade de arquivos contra um baseline",
     )
-    verify_parser.add_argument(
-        "--path",
-        required=True,
-        help="Caminho do diretório a ser verificado",
-    )
-    verify_parser.add_argument(
-        "--baseline",
-        required=True,
-        help="Caminho do arquivo baseline JSON",
-    )
+    verify_parser.add_argument("--path", required=True, help="Caminho do diretório a ser verificado")
+    verify_parser.add_argument("--baseline", required=True, help="Caminho do arquivo baseline JSON")
+    verify_parser.add_argument("--output", help="Caminho do relatório de saída")
+    verify_parser.add_argument("--format", choices=["json", "csv"], default="json", help="Formato do relatório")
 
     return parser
 
@@ -107,17 +90,38 @@ def _build_parser() -> argparse.ArgumentParser:
 def cmd_scan(args: argparse.Namespace) -> int:
     """Executa o comando scan."""
     scanner = DirectoryScanner(args.path)
+    files = list(scanner.scan())
     count = 0
 
-    for file_info in scanner.scan():
+    # Prepara dados para relatório
+    report_data = []
+
+    for file_info in files:
         count += 1
         print(
             f"[{count}] {file_info.path.name} | "
             f"{file_info.size} bytes | {file_info.extension} | "
             f"{file_info.modified_at.strftime('%Y-%m-%d %H:%M')}"
         )
+        report_data.append({
+            "path": str(file_info.path),
+            "name": file_info.path.name,
+            "size_bytes": file_info.size,
+            "extension": file_info.extension,
+            "modified_at": file_info.modified_at.isoformat(),
+        })
 
     print(f"\nTotal de arquivos encontrados: {count}")
+
+    # Gera relatório se solicitado
+    if args.output:
+        reporter = ReportGenerator()
+        if args.format == "json":
+            reporter.to_json({"scanned_files": report_data, "total": count}, prefix="scan")
+        else:
+            reporter.to_csv(report_data, prefix="scan")
+        print(f"\n📄 Relatório salvo em: reports/")
+
     return 0
 
 
@@ -157,11 +161,37 @@ def cmd_duplicates(args: argparse.Namespace) -> int:
     print(f"DUPLICATAS ENCONTRADAS: {len(duplicates)} grupos")
     print(f"{'='*60}")
 
+    # Prepara dados para relatório
+    report_data = []
+
     for file_hash, paths in duplicates.items():
         print(f"\nHash: {file_hash}")
         print(f"Arquivos ({len(paths)}):")
         for p in paths:
             print(f"  → {p}")
+
+        report_data.append({
+            "hash": file_hash,
+            "file_count": len(paths),
+            "paths": [str(p) for p in paths],
+        })
+
+    if args.output:
+        reporter = ReportGenerator()
+        if args.format == "json":
+            reporter.to_json({"duplicate_groups": report_data, "total_groups": len(duplicates)}, prefix="duplicates")
+        else:
+            # Flatten para CSV: uma linha por arquivo duplicado
+            csv_rows = []
+            for group in report_data:
+                for path in group["paths"]:
+                    csv_rows.append({
+                        "hash": group["hash"],
+                        "path": path,
+                        "group_size": group["file_count"],
+                    })
+            reporter.to_csv(csv_rows, prefix="duplicates")
+        print(f"\n📄 Relatório salvo em: reports/")
 
     return 0
 
@@ -203,6 +233,43 @@ def cmd_verify(args: argparse.Namespace) -> int:
         print(f"\n❌ ARQUIVOS REMOVIDOS ({len(result.removed)}):")
         for item in result.removed:
             print(f"  → {item['path']}")
+
+    # Gera relatório se solicitado
+    if args.output:
+        reporter = ReportGenerator()
+        report_dict = {
+            "scanned_at": result.scanned_at,
+            "root_path": result.root_path,
+            "summary": result.summary(),
+            "is_clean": result.is_clean,
+            "intact_count": len(result.intact),
+            "modified": result.modified,
+            "new": result.new,
+            "removed": result.removed,
+        }
+
+        if args.format == "json":
+            reporter.to_json(report_dict, prefix="integrity")
+        else:
+            # Flatten para CSV
+            csv_rows = []
+            for status, items in [
+                ("modified", result.modified),
+                ("new", result.new),
+                ("removed", result.removed),
+            ]:
+                for item in items:
+                    row = {"status": status, "path": item["path"]}
+                    if status == "modified":
+                        row["expected_hash"] = item.get("expected_hash", "")
+                        row["current_hash"] = item.get("current_hash", "")
+                    csv_rows.append(row)
+            if csv_rows:
+                reporter.to_csv(csv_rows, prefix="integrity")
+            else:
+                print("Nada para exportar em CSV (sistema limpo).")
+
+        print(f"\n📄 Relatório salvo em: reports/")
 
     return 1
 
