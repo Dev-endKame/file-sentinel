@@ -3,6 +3,7 @@ Entry point do SafeScan.
 """
 
 from src.core.scanner import DirectoryScanner
+from src.core.hasher import FileHasher
 from src.utils.logger import setup_logger
 
 
@@ -11,22 +12,25 @@ def main() -> None:
     logger = setup_logger()
     logger.info("SafeScan iniciado com sucesso.")
 
-    # Varre a pasta src/ do próprio projeto como teste
+    # 1. Varre a pasta src/
     scanner = DirectoryScanner("src")
-    
-    count = 0
-    for file_info in scanner.scan():
-        count += 1
-        logger.info(
-            "[%d] %s | %d bytes | %s | %s",
-            count,
-            file_info.path.name,
-            file_info.size,
-            file_info.extension,
-            file_info.modified_at.strftime("%Y-%m-%d %H:%M"),
-        )
+    hasher = FileHasher()
 
-    logger.info("Total de arquivos encontrados: %d", count)
+    # 2. Calcula hash de cada arquivo encontrado
+    for file_info in scanner.scan():
+        try:
+            file_hash = hasher.hash_file(file_info.path)
+            logger.info(
+                "[%s] %s | %d bytes | hash: %s",
+                file_info.extension or "no-ext",
+                file_info.path.name,
+                file_info.size,
+                file_hash,
+            )
+        except Exception as exc:
+            logger.error("Falha ao processar %s: %s", file_info.path, exc)
+
+    logger.info("Varredura e hashing concluídos.")
 
 
 if __name__ == "__main__":
