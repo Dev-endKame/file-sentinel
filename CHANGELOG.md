@@ -33,3 +33,7 @@ Módulo `src/core/hasher.py` para cálculo de hashes SHA-256
 - Geração de baseline JSON persistente com metadados de auditoria
 - Verificação de integridade detectando: intactos, modificados, novos, removidos
 - Simulação de ataque no entry point para demonstração forense
+
+- Interface de linha de comando (CLI) profissional com 5 subcomandos
+- `scan`, `hash`, `duplicates`, `baseline`, `verify`
+- Códigos de saída Unix para integração com scripts e automação
