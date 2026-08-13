@@ -7,7 +7,7 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
-## [0.1.1] - 2026-08-13
+## [0.1.2] - 2026-08-13
 
 ### Adicionado
 - Estrutura modular do projeto (`src/core`, `src/utils`, `src/cli`)
@@ -19,3 +19,7 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - Classe `FileInfo` com metadados (path, size, modified_at, extension)
 - Filtro de exclusão de diretórios (pycache, .git, venv, etc.)
 - Logging de auditoria para cada arquivo acessado
+
+Módulo `src/core/hasher.py` para cálculo de hashes SHA-256
+- Leitura em streaming (chunks de 64KB) para arquivos grandes
+- Integração scanner + hasher no entry point

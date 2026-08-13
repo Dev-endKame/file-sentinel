@@ -44,3 +44,6 @@ Thumbs.db
 *.pyd
 *.pyo
 *.pyi
+
+# Testes locais
+test_files/
