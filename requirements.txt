@@ -1,3 +1,8 @@
 # SafeScan - Dependências do projeto
 # Por enquanto, o projeto utiliza apenas a biblioteca padrão do Python.
 # Dependências externas serão adicionadas conforme necessário.
+
+# SafeScan - Dependências do projeto
+
+# Testes automatizados
+pytest>=8.0.0

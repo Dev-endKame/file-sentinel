@@ -5,9 +5,9 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
-## [Unreleased]
+## [Atualizações]
 
-## [0.1.4] - 2026-08-13
+## [0.1.6] - 2026-08-13
 
 ### Adicionado
 - Estrutura modular do projeto (`src/core`, `src/utils`, `src/cli`)
@@ -38,3 +38,12 @@ Módulo `src/core/hasher.py` para cálculo de hashes SHA-256
 - `scan`, `hash`, `duplicates`, `baseline`, `verify`
 - Códigos de saída Unix para integração com scripts e automação
 - Separação entre output do usuário (print) e logs de auditoria (logger)
+
+- Módulo `src/utils/report_generator.py` para exportação de relatórios
+- Suporte a JSON (integração/SIEM) e CSV (Excel/auditoria)
+- Flags `--output` e `--format` nos comandos `scan`, `duplicates`, `verify`
+- Nomenclatura com timestamp para preservar histórico forense
+
+- Suite de testes unitários para `FileHasher` com pytest
+- Padrão Arrange-Act-Assert (AAA) em todos os testes
+- Testes de determinismo, edge cases e tratamento de erros
