@@ -38,3 +38,9 @@ Thumbs.db
 *.log
 .env
 .env.local
+
+
+# Arquivos temporários
+*.pyd
+*.pyo
+*.pyi

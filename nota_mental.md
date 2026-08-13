@@ -1,0 +1,3 @@
+1. "O que aconteceria se eu passasse C:/ como root_path?"
+O scanner funcionaria, mas varreria todo o disco rígido. Em um PC comum, isso são centenas de milhares de arquivos. O log ficaria gigantesco. Em cibersegurança, isso é chamado de "full disk scan" — usado em investigações forenses, mas sempre com filtros e fora do horário comercial.
+2. Primeira Lição: Sempre valide o escopo antes de executar uma varredura. Um scanner sem limites é uma arma de destruição de performance.
